@@ -6,7 +6,7 @@ public class RouterNode {
   private int myID;
   private GuiTextArea myGUI;
   private RouterSimulator sim;
-  private HashMap<Integer, HashMap<Integer, Integer>> map;
+  private HashMap<Integer, HashMap<Integer, Integer[]>> map;
   private List<Integer> vecinos;
   private List<Integer> destinos;
   //--------------------------------------------------
@@ -14,11 +14,13 @@ public class RouterNode {
     myID = ID;
     this.sim = sim;
     myGUI =new GuiTextArea("  Output window for Router #"+ ID + "  ");
-    //Instancio map que sera mi tabla de ruteo
-    map=  new HashMap<Integer, HashMap<Integer, Integer>>();
+    //Instancio map que sera mi tabla de ruteo que contiene En filas el origen, en columnas el destino, y en cada lugar el par camino/costo de la forma [Integer camino]integer costo
+    map=  new HashMap<Integer, HashMap<Integer, Integer[]>>();
     vecinos = new ArrayList<Integer>();
     destinos = new ArrayList<Integer>();
     
+    
+
     //Itero sobre los costos de los vecinos recibido en el construcor
     Iterator it = costs.entrySet().iterator();
 			
@@ -37,34 +39,23 @@ public class RouterNode {
 			  destinos.add(vecino);
 		  
 		  //Obtengo mi vector de distancias de la tabla de ruteo, sino existe aun lo instancio y me asigno a mi mismo el costo 0
-		  HashMap<Integer, Integer> miVector=map.get(myID);
+		  HashMap<Integer, Integer[]> miVector=map.get(myID);
 		  if(miVector==null)
 		  {
-		  	miVector=new HashMap<Integer,Integer>();
-		    miVector.put(myID, 0);
+			//me agrego a mi mismo como destino
+			  if (!destinos.contains(myID))
+				  destinos.add(myID);
+		  	miVector=new HashMap<Integer,Integer[]>();
+		  	
+		    miVector.put(myID, new Integer[]{myID,0});
 		  }
 		  //Agrego el costo del vecino correspondiente al paso de la iteracion en este momento
-		  miVector.put(vecino, vecinoCostoInteger);
+		  miVector.put(vecino, new Integer[]{vecino,vecinoCostoInteger});
 		  //Agrego mi vector de distancia a mi tabla de ruteo			
 		  map.put(myID, miVector);
 		
 		  
-		  //De aqui en mas se realiza para completar en la tabla de ruteo los costos espejo111
-		  //Obtengo el vector de distancias del vecino de la tabla de ruteo, sino existe aun lo instancio y le asigno a mi mismo el costo 0
-		  
-		  HashMap<Integer, Integer> miVecinoVector=map.get(vecino);
-		  if(miVecinoVector==null)
-		  {
-		  	miVecinoVector=new HashMap<Integer,Integer>();
-		  	miVecinoVector.put(vecino, 0);
-				
-		  }
-		  //Agrego el espejo de costo del vecino a mi
-		  miVecinoVector.put(myID, vecinoCostoInteger);
-		  
-		  //Agrego el vector distancia del vecino a la tabla ruteo
-		  map.put(vecino, miVecinoVector);
-		
+		 
 		
 		}
 	  //relleno los valores infinitos
@@ -79,25 +70,43 @@ public class RouterNode {
 
 	  for (Integer v1 : destinos) {
 		  for (Integer v2 : destinos) {
-			  if(v1!=v2)
-			  {
-				  HashMap<Integer, Integer> vecinoVector=map.get(v1);
+			 // if(v1!=v2)
+			  //{
+				  HashMap<Integer, Integer[]> vecinoVector=map.get(v1);
 				  if(vecinoVector==null)
-				 	  vecinoVector=new HashMap<Integer,Integer>();
+				 	  vecinoVector=new HashMap<Integer,Integer[]>();
 				  if(vecinoVector.get(v2)==null)
-					  vecinoVector.put(v2, this.sim.INFINITY);
+					  vecinoVector.put(v2, new Integer[]{null,this.sim.INFINITY});
 			    map.put(v1, vecinoVector);
-			  }
+			  //}
 		  }
 	  }
 	  
   }
+  
+  private HashMap<Integer, Integer> obtengoMiVectorDistancia()
+  {
+	  //armo de mi tabla de ruteo mi vector de distancia, es decir le quito el componente camino de la calve camino/costo 
+	  HashMap<Integer, Integer> dvAEnviar= new HashMap<Integer,Integer>();
+	  HashMap<Integer, Integer[]> dvEnTR= new HashMap<Integer,Integer[]>();
+	  dvEnTR=map.get(myID);
+	  Iterator it = dvEnTR.entrySet().iterator();
+	  while (it.hasNext()) {
+		    Map.Entry e = (Map.Entry)it.next();
+		    Integer [] caminoCosto=(Integer[]) e.getValue();
+		    dvAEnviar.put((Integer) e.getKey(), caminoCosto[1]);
+	  }
+	  return dvAEnviar;
+  }
   private void notificarVecinos()
   {
 	  
+	  HashMap<Integer, Integer> dv= obtengoMiVectorDistancia();
 	  //recorro la lista de mis vecinos para notificarlos y enviarles mi vector de distancia
+	  
 	  for (Integer vecinoID : vecinos) {
-			RouterPacket pkt= new RouterPacket(myID, vecinoID, map.get(myID));
+		  
+			RouterPacket pkt= new RouterPacket(myID, vecinoID, dv);
 			sendUpdate(pkt);
 		}
   }
@@ -120,26 +129,19 @@ public class RouterNode {
 		    //Obtengo el el costo de ese destino alcanzable por mi vecino
 		    Integer costoDestinoAlcanzablePorVecino=(Integer) e.getValue();
 		    //Obtengo mi costo a este vecino (NO AL DEL DESTINO ALCANZABLE)
-		    Integer costoAlVecino=map.get(myID).get(vecino);
+		    Integer costoAlVecino=map.get(myID).get(vecino)[1];
+		    //Agrego este detino alcanzable del vector distancia de mi vecino a mi tabla de ruteo en el vector distancia de mi vecino
+			map.get(vecino).put(destinoAlcanzablePorVecino,new Integer[]{vecino,costoDestinoAlcanzablePorVecino} );
+		    
 		    //Verifico si el destino alcanzable por el vecino no se encuentra en mi vector de distancia o si mi costo a el es mayor que mi costo al vecino mas el costo del vecino al destino alcanzable por el
-		    if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)>costoDestinoAlcanzablePorVecino+costoAlVecino))
+		    if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)[1]>costoDestinoAlcanzablePorVecino+costoAlVecino))
 		    {
 		    	//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
-		    	map.get(myID).put(destinoAlcanzablePorVecino, costoDestinoAlcanzablePorVecino+costoAlVecino);
+		    	map.get(myID).put(destinoAlcanzablePorVecino,  new Integer[]{vecino,costoDestinoAlcanzablePorVecino+costoAlVecino});
 		    	 //si el destino no existe lo agrego a mi lista de destinos
 				  if (!destinos.contains(vecino))
 					  destinos.add(vecino);
 				
-		    	//Agrego el espejo
-		    	 HashMap<Integer, Integer> desAlcVector=map.get(destinoAlcanzablePorVecino);
-				  if(desAlcVector==null)
-				  {
-					  desAlcVector=new HashMap<Integer,Integer>();
-					  desAlcVector.put(destinoAlcanzablePorVecino, 0);
-				  }
-				  desAlcVector.put(myID, costoDestinoAlcanzablePorVecino+costoAlVecino);
-				  map.put(destinoAlcanzablePorVecino, desAlcVector);
-				//marco que hay cambios para notificar
 		    	hayCambios=true;
 		    	
 		    }
@@ -157,7 +159,36 @@ public class RouterNode {
     sim.toLayer2(pkt);
 
   }
-  
+
+  private String formatearDato(Integer camino,Integer costo)
+  {
+  	//formateo los costos e IDs para la salida en pantalla
+	  String s;
+	  String co;
+  	if(costo==sim.INFINITY)
+  		co="IFN";
+  	else
+  		
+  		co=costo.toString();
+  	   
+  	
+
+  	String ca;
+  	if(camino==null)
+  		ca="-";
+  	else
+  		
+  		ca=camino.toString();
+  	   
+  	ca="["+ca+"]";
+  	s=ca+co+"_|";
+  	while(s.length()<8)
+  	{
+  		s="_"+s;
+  	}
+  	
+  return s;
+  }
 private String formatearNumero(Integer i)
 {
 	//formateo los costos e IDs para la salida en pantalla
@@ -168,7 +199,7 @@ private String formatearNumero(Integer i)
 		
 		s=i.toString();
 	   
-	while(s.length()<4)
+	while(s.length()<5)
 	{
 		s="_"+s;
 	}
@@ -181,7 +212,7 @@ return s;
 	  myGUI.println("Current table for " + myID +
 			"  at time " + sim.getClocktime());
 
-	  String cabezal="_O/D_|";
+	  String cabezal="__O/D_|";
 	  Boolean cabezalImprimir=true;
 
 	  String out;
@@ -196,17 +227,17 @@ return s;
 		    origenImprimir=true;
 		    
 		    out="";
-		    Iterator itI = ((HashMap<Integer, Integer>) o.getValue()).entrySet().iterator();
+		    Iterator itI = ((HashMap<Integer, Integer[]>) o.getValue()).entrySet().iterator();
 			  while (itI.hasNext()) {
 				    Map.Entry i = (Map.Entry)itI.next();
 				    Integer x=(Integer) i.getKey();
-				    Integer costo=(Integer) i.getValue();
+				    Integer[] caminoCosto=(Integer[]) i.getValue();
 				    if (cabezalImprimir)
 				    	cabezal=cabezal+formatearNumero(x);				    	
 				    if(origenImprimir)
 				    	out=out+formatearNumero(y);
 				    origenImprimir=false;
-				    out=out+formatearNumero(costo);
+				    out=out+formatearDato(caminoCosto[0],caminoCosto[1]);
 				    
 			  }    
 			  
@@ -226,17 +257,13 @@ return s;
   //--------------------------------------------------
   public void updateLinkCost(int dest, int newcost) {
 	  //Me aseguro que el destino sea siempre un nodo vecino y que el costo sea realmente diferente
-	  if(vecinos.contains(dest) && map.get(myID).get(dest)!=newcost)
+	  if(vecinos.contains(dest) && map.get(myID).get(dest)[1]!=newcost)
 	  {
 		  //sustituyo el nuevo valor del costo del link
-		  HashMap<Integer,Integer> miVector=map.get(myID);
-		  miVector.put(dest, newcost);
+		  HashMap<Integer,Integer[]> miVector=map.get(myID);
+		  miVector.put(dest, new Integer[]{miVector.get(dest)[0],newcost});
 		  map.put(myID, miVector);
 		
-		  //sustituyo el espejo de dicho costo
-		  HashMap<Integer,Integer> vecinoVector=map.get(dest);
-		  vecinoVector.put(myID, newcost);
-		  map.put(dest, vecinoVector);
 		  
 		notificarVecinos();
 	  }
