@@ -139,12 +139,13 @@ public class RouterNode {
 		    	//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
 		    	map.get(myID).put(destinoAlcanzablePorVecino,  new Integer[]{vecino,costoDestinoAlcanzablePorVecino+costoAlVecino});
 		    	 //si el destino no existe lo agrego a mi lista de destinos
-				  if (!destinos.contains(vecino))
-					  destinos.add(vecino);
 				
 		    	hayCambios=true;
 		    	
 		    }
+		    if (!destinos.contains(destinoAlcanzablePorVecino))
+				  destinos.add(destinoAlcanzablePorVecino);
+			
 		}
 	  
 	  rellenarInfinitos();	  
