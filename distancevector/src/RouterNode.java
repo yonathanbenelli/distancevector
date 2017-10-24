@@ -167,7 +167,7 @@ public class RouterNode {
 	  String s;
 	  String co;
   	if(costo==sim.INFINITY)
-  		co="IFN";
+  		co="#";
   	else
   		
   		co=costo.toString();
@@ -176,17 +176,16 @@ public class RouterNode {
 
   	String ca;
   	if(camino==null)
-  		ca="-";
+  		ca="#";
   	else
   		
   		ca=camino.toString();
   	   
   	ca="["+ca+"]";
-  	s=ca+co+"_|";
-  	while(s.length()<8)
-  	{
-  		s="_"+s;
-  	}
+  	s=ca+co;
+  	
+  	s=F.format(s,15);
+  	
   	
   return s;
   }
@@ -195,17 +194,15 @@ private String formatearNumero(Integer i)
 	//formateo los costos e IDs para la salida en pantalla
 	String s;
 	if(i==sim.INFINITY)
-		s="IFN";
+		s="#";
 	else
 		
 		s=i.toString();
 	   
-	while(s.length()<5)
-	{
-		s="_"+s;
-	}
 	
-	s=s+"_|";
+  	s=F.format(s, 15);
+  	
+	
 return s;
 }
   //--------------------------------------------------
@@ -213,7 +210,7 @@ return s;
 	  myGUI.println("Current table for " + myID +
 			"  at time " + sim.getClocktime());
 
-	  String cabezal="__O/D_|";
+	  String cabezal=F.format("O/D" , 15);
 	  Boolean cabezalImprimir=true;
 
 	  String out;
