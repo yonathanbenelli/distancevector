@@ -14,22 +14,27 @@ public class RouterNode {
     myID = ID;
     this.sim = sim;
     myGUI =new GuiTextArea("  Output window for Router #"+ ID + "  ");
-    //Instancio map que sera mi tabla de ruteo que contiene En filas el origen, en columnas el destino, y en cada lugar el par camino/costo de la forma [Integer camino]integer costo
+    //Instancio map que sera mi tabla de ruteo que contiene 
+    //En filas el origen, en columnas el destino, 
+    //y en cada lugar el par camino/costo de la forma [Integer camino]integer costo
     map=  new HashMap<Integer, HashMap<Integer, Integer[]>>();
     vecinos = new ArrayList<Integer>();
     destinos = new ArrayList<Integer>();
     
     
 
-    //Itero sobre los costos de los vecinos recibido en el construcor
+    //Itero sobre los costos de los vecinos recibido en el constructor
     Iterator it = costs.entrySet().iterator();
 			
 	  while (it.hasNext()) {
 		  Map.Entry e = (Map.Entry)it.next();
+		  
 		  //obtengo id del vecino
 		  Integer vecino=(Integer) e.getKey();
+		  
 		  //obtengo costo del vecino
 		  Integer vecinoCostoInteger=(Integer) e.getValue();
+		  
 		  //si el vecino no existe lo agrego a mi lista de vecinos, para luego saber a quien notificar
 		  if (!vecinos.contains(vecino))
 			  vecinos.add(vecino);
@@ -38,7 +43,8 @@ public class RouterNode {
 		  if (!destinos.contains(vecino))
 			  destinos.add(vecino);
 		  
-		  //Obtengo mi vector de distancias de la tabla de ruteo, sino existe aun lo instancio y me asigno a mi mismo el costo 0
+		  //Obtengo mi vector de distancias de la tabla de ruteo, sino existe aun lo instancio y me 
+		  //asigno a mi mismo el costo 0
 		  HashMap<Integer, Integer[]> miVector=map.get(myID);
 		  if(miVector==null)
 		  {
@@ -51,12 +57,10 @@ public class RouterNode {
 		  }
 		  //Agrego el costo del vecino correspondiente al paso de la iteracion en este momento
 		  miVector.put(vecino, new Integer[]{vecino,vecinoCostoInteger});
+		  
 		  //Agrego mi vector de distancia a mi tabla de ruteo			
 		  map.put(myID, miVector);
-		
-		  
-		 
-		
+	
 		}
 	  //relleno los valores infinitos
 	  rellenarInfinitos();
@@ -86,7 +90,8 @@ public class RouterNode {
   
   private HashMap<Integer, Integer> obtengoMiVectorDistancia()
   {
-	  //armo de mi tabla de ruteo mi vector de distancia, es decir le quito el componente camino de la calve camino/costo 
+	  //armo de mi tabla de ruteo mi vector de distancia, es decir le quito el componente camino de la clave 
+	  //camino/costo 
 	  HashMap<Integer, Integer> dvAEnviar= new HashMap<Integer,Integer>();
 	  HashMap<Integer, Integer[]> dvEnTR= new HashMap<Integer,Integer[]>();
 	  dvEnTR=map.get(myID);
@@ -104,8 +109,7 @@ public class RouterNode {
 	  HashMap<Integer, Integer> dv= obtengoMiVectorDistancia();
 	  //recorro la lista de mis vecinos para notificarlos y enviarles mi vector de distancia
 	  
-	  for (Integer vecinoID : vecinos) {
-		  
+	  for (Integer vecinoID : vecinos) {		  
 			RouterPacket pkt= new RouterPacket(myID, vecinoID, dv);
 			sendUpdate(pkt);
 		}
@@ -114,11 +118,21 @@ public class RouterNode {
   //--------------------------------------------------
   public void recvUpdate(RouterPacket pkt) {
 	  
+	  
+	  //parametrizarlo
+	  Boolean aplicoRevInv=true;
+	  
+	  
+	  Integer nuevoVal;
+	  
 	  HashMap<Integer,Integer> mincost = pkt.mincost;
+	  
 	  //Id del vecino que me notifica de un cambio
 	  Integer vecino=pkt.sourceid;
+	
 	  //bandera para verificar cambio en mi vector de distancia y notificar a mis vecinos al final
 	  Boolean hayCambios=false;
+	  
 	  //itero sobre el vector de distancia del vecino
 	  Iterator it = mincost.entrySet().iterator();
 	  while (it.hasNext()) {
@@ -126,30 +140,65 @@ public class RouterNode {
 		    
 		    //Obtengo el ID del destino alcanzable por mi vecino
 		    Integer destinoAlcanzablePorVecino=(Integer) e.getKey();
+		
 		    //Obtengo el el costo de ese destino alcanzable por mi vecino
 		    Integer costoDestinoAlcanzablePorVecino=(Integer) e.getValue();
+		    
 		    //Obtengo mi costo a este vecino (NO AL DEL DESTINO ALCANZABLE)
 		    Integer costoAlVecino=map.get(myID).get(vecino)[1];
-		    //Agrego este detino alcanzable del vector distancia de mi vecino a mi tabla de ruteo en el vector distancia de mi vecino
+		    
+		    //Agrego este detino alcanzable del vector distancia de mi vecino a mi tabla de ruteo 
+		    //en el vector distancia de mi vecino
 			map.get(vecino).put(destinoAlcanzablePorVecino,new Integer[]{vecino,costoDestinoAlcanzablePorVecino} );
 		    
-		    //Verifico si el destino alcanzable por el vecino no se encuentra en mi vector de distancia o si mi costo a el es mayor que mi costo al vecino mas el costo del vecino al destino alcanzable por el
+		    //Verifico si el destino alcanzable por el vecino no se encuentra en mi vector de distancia 
+			//o si mi costo a el es mayor que mi costo al vecino mas el costo del vecino al destino alcanzable 
+			//por el
+			
+			/*ESTO HABIA ANTES DE REVERSA ENVENENADA
 		    if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)[1]>costoDestinoAlcanzablePorVecino+costoAlVecino))
 		    {
 		    	//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
 		    	map.get(myID).put(destinoAlcanzablePorVecino,  new Integer[]{vecino,costoDestinoAlcanzablePorVecino+costoAlVecino});
-		    	 //si el destino no existe lo agrego a mi lista de destinos
-				
+		    	 //si el destino no existe lo agrego a mi lista de destinos				
 		    	hayCambios=true;
 		    	
 		    }
+		    */
+			
+			//CON REVERSA ENVENENADA
+			nuevoVal = costoDestinoAlcanzablePorVecino+costoAlVecino;
+			if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)[1]>nuevoVal))
+		    {
+		    	//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable				
+				
+				//pero primero aplico reversa envenenada en caso de que este parametrizada asi
+				if (aplicoRevInv)
+				{
+					// si para ir al destino tiene que pasar por mi
+					if (myID == map.get(vecino).get(destinoAlcanzablePorVecino)[0])
+					{
+						//seteo el valor infinito
+						nuevoVal = sim.INFINITY;		
+					}
+						
+				}
+												
+				map.get(myID).put(destinoAlcanzablePorVecino,  new Integer[]{vecino,nuevoVal});
+		    	 //si el destino no existe lo agrego a mi lista de destinos				
+		    	hayCambios=true;
+		    	
+		    }
+						
+			
 		    if (!destinos.contains(destinoAlcanzablePorVecino))
 				  destinos.add(destinoAlcanzablePorVecino);
 			
 		}
 	  
 	  rellenarInfinitos();	  
-	//SI hay cambios aviso a vecinos
+	
+	  //SI hay cambios aviso a vecinos
 	  if(hayCambios)
 		  notificarVecinos();
   }
@@ -243,9 +292,7 @@ return s;
 				  myGUI.println(cabezal);
 			  
 			  cabezalImprimir=false;
-			  myGUI.println(out);
-			  
-			    
+			  myGUI.println(out);			  			   
 	  }
 	  
 
