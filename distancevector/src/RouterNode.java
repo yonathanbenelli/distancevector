@@ -1,6 +1,7 @@
 import javax.swing.*;        
 
 import java.util.*;
+import java.util.Map.Entry;
 
 public class RouterNode {
   private int myID;
@@ -8,10 +9,9 @@ public class RouterNode {
   private RouterSimulator sim;
   private HashMap<Integer, HashMap<Integer, Integer[]>> map;
   private HashMap<Integer, Integer> links;
-  private List<Integer> vecinos;
-  private List<Integer> destinos;
+ 
 //parametrizarlo
-  Boolean aplicoRevInv=false;
+  Boolean aplicoRevInv=true;
   
   
   //--------------------------------------------------
@@ -23,8 +23,6 @@ public class RouterNode {
     //En filas el origen, en columnas el destino, 
     //y en cada lugar el par camino/costo de la forma [Integer camino]integer costo
     map=  new HashMap<Integer, HashMap<Integer, Integer[]>>();
-    vecinos = new ArrayList<Integer>();
-    destinos = new ArrayList<Integer>();
     
     
 
@@ -41,12 +39,8 @@ public class RouterNode {
 		  Integer vecinoCostoInteger=(Integer) e.getValue();
 		  
 		  //si el vecino no existe lo agrego a mi lista de vecinos, para luego saber a quien notificar
-		  if (!vecinos.contains(vecino))
-			  vecinos.add(vecino);
 		  
 		  //si el destino no existe lo agrego a mi lista de destinos
-		  if (!destinos.contains(vecino))
-			  destinos.add(vecino);
 		  
 		  //Obtengo mi vector de distancias de la tabla de ruteo, sino existe aun lo instancio y me 
 		  //asigno a mi mismo el costo 0
@@ -54,8 +48,6 @@ public class RouterNode {
 		  if(miVector==null)
 		  {
 			//me agrego a mi mismo como destino
-			  if (!destinos.contains(myID))
-				  destinos.add(myID);
 		  	miVector=new HashMap<Integer,Integer[]>();
 		  	
 		    miVector.put(myID, new Integer[]{myID,0});
@@ -71,29 +63,49 @@ public class RouterNode {
 	
 		}
 	  //relleno los valores infinitos
-	  rellenarInfinitos();
+	  rellenarInfinitos(myID);
 	   
 	  //Notifico a todos mis vecinos que hubo cambios dado que antes no tenia datos
 	  notificarVecinos();	
 }
   
-  private void rellenarInfinitos()
+  private void rellenarInfinitos(Integer idNodoConNuevoVecino)
   {
-
-	  for (Integer v1 : destinos) {
-		  for (Integer v2 : destinos) {
-			 // if(v1!=v2)
-			  //{
-				  HashMap<Integer, Integer[]> vecinoVector=map.get(v1);
-				  if(vecinoVector==null)
-				 	  vecinoVector=new HashMap<Integer,Integer[]>();
-				  if(vecinoVector.get(v2)==null)
-					  vecinoVector.put(v2, new Integer[]{null,this.sim.INFINITY});
-			    map.put(v1, vecinoVector);
-			  //}
-		  }
-	  }
 	  
+
+		//hagao la matriz cuadrada con lo nuevo, e infinitos donde corresponda
+		HashMap<Integer, Integer[]> nodosRed=map.get(idNodoConNuevoVecino);
+		if(nodosRed!=null)
+		{
+		Iterator<Entry<Integer,Integer[]>> it1 = nodosRed.entrySet().iterator();
+		while (it1.hasNext()){
+			
+			Map.Entry<Integer, Integer[]> e = (Map.Entry<Integer, Integer[]>)it1.next();
+			Integer v1=e.getKey();
+
+			Iterator<Entry<Integer,Integer[]>> it2 = nodosRed.entrySet().iterator();
+			while (it2.hasNext()){
+				
+				Map.Entry<Integer, Integer[]> e2 = (Map.Entry<Integer, Integer[]>)it2.next();
+				Integer v2=e2.getKey();
+			
+							HashMap<Integer, Integer[]> vecinoVector=map.get(v1);
+							if(vecinoVector==null)
+								vecinoVector=new HashMap<Integer,Integer[]>();
+							if(vecinoVector.get(v2)==null)
+							{
+
+								if(v1==v2)
+									vecinoVector.put(v2, new Integer[]{null,0,0});
+									else
+								vecinoVector.put(v2, new Integer[]{null,this.sim.INFINITY,0});
+							}
+						    map.put(v1, vecinoVector);
+			 
+			}
+		}
+		} 
+
   }
   
   private HashMap<Integer, Integer> obtengoMiVectorDistancia()
@@ -117,16 +129,19 @@ public class RouterNode {
 	  
 	  HashMap<Integer, Integer> dv= obtengoMiVectorDistancia();
 	  //recorro la lista de mis vecinos para notificarlos y enviarles mi vector de distancia
-	  
-	  for (Integer destinoNodo : vecinos) {		  
+	  Iterator it = links.entrySet().iterator();
+	  while (it.hasNext()) {
+		    Map.Entry e = (Map.Entry)it.next();
+		    Integer destinoNodo=(Integer) e.getKey();
+	  	  
 			RouterPacket pkt= new RouterPacket(myID, destinoNodo, dv);
 			if(aplicoRevInv)
 			{
 				
-				Iterator it = dv.entrySet().iterator();
-				  while (it.hasNext()) {
-					    Map.Entry e = (Map.Entry)it.next();
-					    Integer destinoAlc=(Integer) e.getKey();
+				Iterator it2 = dv.entrySet().iterator();
+				  while (it2.hasNext()) {
+					    Map.Entry e2 = (Map.Entry)it2.next();
+					    Integer destinoAlc=(Integer) e2.getKey();
 					    if(map.get(myID).get(destinoAlc)[0]==destinoNodo)
 							pkt.mincost.put(destinoAlc,sim.INFINITY);
 				  }		
@@ -142,24 +157,24 @@ public class RouterNode {
   {
 	
 
-	  HashMap<Integer,Integer[]> miVectorDist = map.get(myID);
 	    Integer keyMenor=sim.INFINITY;
 	    Integer costoKeyMenor=sim.INFINITY;
-	  Iterator it = miVectorDist.entrySet().iterator();
-	  Boolean hayCabmio=false;
 	  
 	  if(links.get(destinoAlcanzablePorVecino)!=null)
 	  {
 		  keyMenor=destinoAlcanzablePorVecino;
 	  	costoKeyMenor=links.get(destinoAlcanzablePorVecino);
-	  }  
-	  for (Integer vecino : vecinos) {
+	  } 
+	  //recorro mis vecinos
+	  Iterator it = links.entrySet().iterator();
+	  while (it.hasNext()) {
+		    Map.Entry e = (Map.Entry)it.next();
+		    Integer vecino=(Integer) e.getKey();
 		if(vecino!=destinoAlcanzablePorVecino)
 		{
 		  Integer costoVecino=links.get(vecino);
 			
 		    if( map.get(vecino).get(destinoAlcanzablePorVecino)!=null)
-		    {
 		    	if(costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1]<costoKeyMenor)
 		    	{
 		    		
@@ -167,7 +182,7 @@ public class RouterNode {
 		    		costoKeyMenor=costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1];
 		    	}
 		    	
-		    }
+		    
 		}
 	}
 	 
@@ -226,12 +241,9 @@ public class RouterNode {
 			}
 						
 			
-		    if (!destinos.contains(destinoAlcanzablePorVecino))
-				  destinos.add(destinoAlcanzablePorVecino);
-			
 		}
 	  
-	  rellenarInfinitos();	  
+	  rellenarInfinitos(vecino);	  
 	
 	  //SI hay cambios aviso a vecinos
 	  if(hayCambios)
@@ -339,7 +351,7 @@ return s;
 	  //Me aseguro que el destino sea siempre un nodo vecino y que el costo sea realmente diferente
 	  
 	  
-	  if(vecinos.contains(dest))
+	  if(links.containsKey(dest))
 			  {
 		  
 		  links.put(dest,newcost);
