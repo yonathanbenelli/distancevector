@@ -87,12 +87,17 @@ should not have to, and you defeinitely should not have to modify
 
     /* set initial costs */
     // remember that in java everything defaults to 0
+    
+    for(int i=0; i<NUM_NODES; i++)
+    	for(int j=0; j<NUM_NODES; j++)
+    		connectcosts[i][j] = INFINITY;
+    
     connectcosts[0][1]=4;  
-    connectcosts[0][2]=1;
+    connectcosts[0][2]=50;
     connectcosts[1][0]=4;
-    connectcosts[1][2]=50;
-    connectcosts[2][0]=1;
-    connectcosts[2][1]=50;
+    connectcosts[1][2]=1;
+    connectcosts[2][0]=50;
+    connectcosts[2][1]=1;
     
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
@@ -113,6 +118,16 @@ should not have to, and you defeinitely should not have to modify
       evptr.eventity =  0;
       evptr.rtpktptr =  null;
       evptr.dest = 1;
+      evptr.cost = 60;
+      insertevent(evptr);
+      
+      
+      evptr = new Event();
+      evptr.evtime =  40;
+      evptr.evtype =  LINK_CHANGE;
+      evptr.eventity =  1;
+      evptr.rtpktptr =  null;
+      evptr.dest = 0;
       evptr.cost = 60;
       insertevent(evptr);
     }
@@ -169,6 +184,7 @@ should not have to, and you defeinitely should not have to modify
 	  nodes[i].printDistanceTable();
 
 	  try {
+		
         Thread.sleep(SLOW);               
       } 
       catch(InterruptedException ex) {
