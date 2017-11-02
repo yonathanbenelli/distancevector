@@ -14,7 +14,7 @@ Output GUIs added by Ch. Schuba 2007.
 
 public class RouterSimulator {
 
-  public static final int NUM_NODES = 3;
+  public static final int NUM_NODES = 5;
   public static final int INFINITY = 999;
 
   public static final boolean LINKCHANGES = true;
@@ -92,12 +92,20 @@ should not have to, and you defeinitely should not have to modify
     	for(int j=0; j<NUM_NODES; j++)
     		connectcosts[i][j] = INFINITY;
     
-    connectcosts[0][1]=4;  
-    connectcosts[0][2]=50;
-    connectcosts[1][0]=4;
-    connectcosts[1][2]=1;
-    connectcosts[2][0]=50;
-    connectcosts[2][1]=1;
+    connectcosts[0][1]=2;
+    connectcosts[1][0]=2;
+    
+    connectcosts[1][2]=3;
+    connectcosts[2][1]=3;
+    
+    connectcosts[3][2]=1;
+    connectcosts[2][3]=1;
+    
+    connectcosts[4][3]=2;
+    connectcosts[3][4]=2;
+    
+    connectcosts[0][4]=5;
+    connectcosts[4][0]=5;
     
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
@@ -118,7 +126,7 @@ should not have to, and you defeinitely should not have to modify
       evptr.eventity =  0;
       evptr.rtpktptr =  null;
       evptr.dest = 1;
-      evptr.cost = 60;
+      evptr.cost = 10;
       insertevent(evptr);
       
       
@@ -128,13 +136,31 @@ should not have to, and you defeinitely should not have to modify
       evptr.eventity =  1;
       evptr.rtpktptr =  null;
       evptr.dest = 0;
-      evptr.cost = 60;
+      evptr.cost = 10;
       insertevent(evptr);
+      
+      evptr = new Event();
+      evptr.evtime =  41;
+      evptr.evtype =  LINK_CHANGE;
+      evptr.eventity =  3;
+      evptr.rtpktptr =  null;
+      evptr.dest = 4;
+      evptr.cost = 10;
+      insertevent(evptr);
+      
+      
+      evptr = new Event();
+      evptr.evtime =  41;
+      evptr.evtype =  LINK_CHANGE;
+      evptr.eventity =  4;
+      evptr.rtpktptr =  null;
+      evptr.dest = 3;
+      evptr.cost = 10;
+      insertevent(evptr);     
+      
     }
   
   }
-
-
 
   void runSimulation(){
     Event eventptr;
