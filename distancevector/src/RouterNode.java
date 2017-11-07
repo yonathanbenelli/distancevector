@@ -11,7 +11,7 @@ public class RouterNode {
 	private HashMap<Integer, HashMap<Integer, Integer[]>> map;
 	private HashMap<Integer, Integer> links;
  
-	Boolean aplicoRevInv=false;
+	Boolean aplicoRevInv=true;
   
 	//--------------------------------------------------
 	public RouterNode(int ID, RouterSimulator sim, HashMap<Integer,Integer> costs) {
@@ -177,7 +177,6 @@ public class RouterNode {
 		    	if( map.get(vecino).get(destinoAlcanzablePorVecino)!=null)
 		    		if(costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1]<costoKeyMenor)
 		    		{
-		    		
 		    			keyMenor=vecino;
 		    			costoKeyMenor=costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1];
 		    		}
@@ -225,15 +224,23 @@ public class RouterNode {
 			if(destinoAlcanzablePorVecino!=myID){
 				
 				Integer[] resultBellmanFord=bellmanFord(destinoAlcanzablePorVecino);
-				if(resultBellmanFord!=null && 
-						((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)[0]!=resultBellmanFord[0] || map.get(myID).get(destinoAlcanzablePorVecino)[1]!=resultBellmanFord[1]))){
-			    	
+				if(resultBellmanFord!=null) //si resultBellmanFord es Nullo entonces no se llega al destino ni por mi ni por mis vecinos
+				{
+					if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)[0]!=resultBellmanFord[0] || map.get(myID).get(destinoAlcanzablePorVecino)[1]!=resultBellmanFord[1]))
+					{
 					//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
 					map.get(myID).put(destinoAlcanzablePorVecino,resultBellmanFord);
 			    	//si el destino no existe lo agrego a mi lista de destinos				
 			    	hayCambios=true;
-			    	
+					}	
 			    }
+				else if(map.get(myID).get(destinoAlcanzablePorVecino)[0]==vecino) //sino llego al destino por mis vecinos, y antes llegaba al destino por mi vecino
+				{
+					//claramente dejo de llegar a ese destino
+					map.get(myID).remove(destinoAlcanzablePorVecino);
+			    	//si el destino no existe lo agrego a mi lista de destinos				
+			    	hayCambios=true;
+				}
 				
 			}
 							
@@ -335,12 +342,25 @@ public class RouterNode {
 		
 	}
 
+	public void simulacionRcvVecinos(int dest)
+	{
+		Integer[] resultBellmanFord=bellmanFord(dest);
+		if(resultBellmanFord!=null &&		((map.get(myID).get(dest)==null) || (map.get(myID).get(dest)[0]!=resultBellmanFord[0] || map.get(myID).get(dest)[1]!=resultBellmanFord[1]))){
+	    	
+			//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
+			map.get(myID).put(dest,resultBellmanFord);
+	    	
+	    	
+	    }
+		
+	}
 	public void updateLinkCost(int dest, int newcost) {
 		
-		//Me aseguro que el destino sea siempre un nodo vecino y que el costo sea realmente diferente
-		if(links.containsKey(dest)){
-			
+		//Agrego y/o actualizo el link en mi lista de links vecinos si el costo no es infinito (caida de link)
+		if(newcost!=sim.INFINITY)
+		{
 			links.put(dest,newcost);
+			//Solo se notifican vecinos y se actualiza el map cuando se usaba ese link, o cuando no se usaba pero el nuevo costo es menor o igual al anterior
 			if((map.get(myID).get(dest)[0]!=dest && map.get(myID).get(dest)[1]>=newcost) || (map.get(myID).get(dest)[0]==dest)){
 				
 				//sustituyo el nuevo valor del costo del link
@@ -349,6 +369,25 @@ public class RouterNode {
 				miVector.put(dest, new Integer[]{miVector.get(dest)[0],newcost});
 				map.put(myID, miVector);
 				notificarVecinos();
+			}
+		}
+		else //remuevo el link de mi lista de links vecinos si el costo es infinito
+		{
+			links.remove(dest);
+			//Solo se notifican vecinos y se actualiza el map cuando se usaba ese link
+			if (map.get(myID).get(dest)[0]==dest){
+				
+				//elimino el camino a ese nodo en mi vector, ya que al usarlo dejo de llegar a el
+				HashMap<Integer,Integer[]> miVector=map.get(myID);
+				miVector.remove(dest);
+				map.put(myID, miVector);
+				//simulo llegada de distance vecto de vecinos
+				simulacionRcvVecinos(dest);
+				rellenarInfinitos(dest);
+				
+				notificarVecinos();
+				
+				
 			}
 		}
 	}
