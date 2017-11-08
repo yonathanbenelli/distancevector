@@ -175,13 +175,12 @@ public class RouterNode {
 		    	Integer costoVecino=links.get(vecino);
 			
 		    	if( map.get(vecino).get(destinoAlcanzablePorVecino)!=null)
-		    		if(costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1]<costoKeyMenor)
-		    		{
+		    		if(costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1]<costoKeyMenor){
+		    			
 		    			keyMenor=vecino;
 		    			costoKeyMenor=costoVecino+map.get(vecino).get(destinoAlcanzablePorVecino)[1];
+		    		
 		    		}
-		    	
-		    
 		    }
 	    }
 	 
@@ -342,18 +341,19 @@ public class RouterNode {
 		
 	}
 
-	public void simulacionRcvVecinos(int dest)
-	{
+	public void simulacionRcvVecinos(int dest){
+		
 		Integer[] resultBellmanFord=bellmanFord(dest);
-		if(resultBellmanFord!=null &&		((map.get(myID).get(dest)==null) || (map.get(myID).get(dest)[0]!=resultBellmanFord[0] || map.get(myID).get(dest)[1]!=resultBellmanFord[1]))){
+		if(resultBellmanFord!=null &&
+				((map.get(myID).get(dest)==null) || (map.get(myID).get(dest)[0]!=resultBellmanFord[0] || map.get(myID).get(dest)[1]!=resultBellmanFord[1]))){
 	    	
 			//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
 			map.get(myID).put(dest,resultBellmanFord);
-	    	
-	    	
+	
 	    }
 		
 	}
+	
 	public void updateLinkCost(int dest, int newcost) {
 		
 		//Agrego y/o actualizo el link en mi lista de links vecinos si el costo no es infinito (caida de link)
@@ -373,7 +373,11 @@ public class RouterNode {
 		}
 		else //remuevo el link de mi lista de links vecinos si el costo es infinito
 		{
-			links.remove(dest);
+			//links.remove(dest);
+			
+			//Modificación Seba, si el cambio es por la caida de un link lo dejo en mi map a los vecinos pero con costo infinito
+			links.put(dest, sim.INFINITY);
+	
 			//Solo se notifican vecinos y se actualiza el map cuando se usaba ese link
 			if (map.get(myID).get(dest)[0]==dest){
 				

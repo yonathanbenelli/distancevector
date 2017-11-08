@@ -98,7 +98,8 @@ should not have to, and you defeinitely should not have to modify
     connectcosts[1][2]=1;
     connectcosts[2][1]=1;
     
-    
+    connectcosts[0][2]=10;
+    connectcosts[2][0]=10;
     
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
