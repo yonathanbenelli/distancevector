@@ -133,11 +133,13 @@ public class RouterNode {
 		//recorro la lista de mis vecinos para notificarlos y enviarles mi vector de distancia
 		Iterator<Entry<Integer, Integer>> it = links.entrySet().iterator();
 		while (it.hasNext()){
-		  
+			
 			Map.Entry<Integer, Integer> e = (Map.Entry<Integer, Integer>)it.next();
-		    Integer destinoNodo=(Integer) e.getKey();
+
+			Integer destinoNodo=(Integer) e.getKey();
 	  	  
 			RouterPacket pkt= new RouterPacket(myID, destinoNodo, dv);
+			
 			if(aplicoRevInv){
 				
 				Iterator<Entry<Integer, Integer>> it2 = dv.entrySet().iterator();
@@ -151,6 +153,7 @@ public class RouterNode {
 				
 			}
 			sendUpdate(pkt);
+					
 		}
 	}
     
@@ -184,14 +187,14 @@ public class RouterNode {
 		    }
 	    }
 	 
-	    if(keyMenor!=sim.INFINITY)
+	    if(keyMenor!=sim.INFINITY && costoKeyMenor!=sim.INFINITY)
 	    	return new Integer[]{keyMenor,costoKeyMenor};
 	    else
 	    	return null;
 	}
   
 	public void recvUpdate(RouterPacket pkt) {
-	   
+	   		
 		HashMap<Integer,Integer> mincost = pkt.mincost;
 	  
 		//Id del vecino que me notifica de un cambio
@@ -223,7 +226,7 @@ public class RouterNode {
 			if(destinoAlcanzablePorVecino!=myID){
 				
 				Integer[] resultBellmanFord=bellmanFord(destinoAlcanzablePorVecino);
-				if(resultBellmanFord!=null) //si resultBellmanFord es Nullo entonces no se llega al destino ni por mi ni por mis vecinos
+				if(resultBellmanFord!=null) //si resultBellmanFord es null entonces no se llega al destino ni por mi ni por mis vecinos
 				{
 					if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || (map.get(myID).get(destinoAlcanzablePorVecino)[0]!=resultBellmanFord[0] || map.get(myID).get(destinoAlcanzablePorVecino)[1]!=resultBellmanFord[1]))
 					{
@@ -233,7 +236,7 @@ public class RouterNode {
 			    	hayCambios=true;
 					}	
 			    }
-				else if(map.get(myID).get(destinoAlcanzablePorVecino)[0]==vecino) //sino llego al destino por mis vecinos, y antes llegaba al destino por mi vecino
+				else if(map.get(myID).get(destinoAlcanzablePorVecino)!=null && map.get(myID).get(destinoAlcanzablePorVecino)[0]==vecino) //sino llego a mi destino por mis vecinos y antes llegaba (pero puede que antes tampoco llegara)
 				{
 					//claramente dejo de llegar a ese destino
 					map.get(myID).remove(destinoAlcanzablePorVecino);
@@ -344,6 +347,7 @@ public class RouterNode {
 	public void simulacionRcvVecinos(int dest){
 		
 		Integer[] resultBellmanFord=bellmanFord(dest);
+			
 		if(resultBellmanFord!=null &&
 				((map.get(myID).get(dest)==null) || (map.get(myID).get(dest)[0]!=resultBellmanFord[0] || map.get(myID).get(dest)[1]!=resultBellmanFord[1]))){
 	    	
@@ -357,41 +361,63 @@ public class RouterNode {
 	public void updateLinkCost(int dest, int newcost) {
 		
 		//Agrego y/o actualizo el link en mi lista de links vecinos si el costo no es infinito (caida de link)
-		if(newcost!=sim.INFINITY)
-		{
+		if(newcost!=sim.INFINITY){
+			
 			links.put(dest,newcost);
-			//Solo se notifican vecinos y se actualiza el map cuando se usaba ese link, o cuando no se usaba pero el nuevo costo es menor o igual al anterior
-			if((map.get(myID).get(dest)[0]!=dest && map.get(myID).get(dest)[1]>=newcost) || (map.get(myID).get(dest)[0]==dest)){
+				
+			//Solo se notifican vecinos y se actualiza el map cuando se usaba ese link, o cuando no se usaba pero el nuevo costo es menor o igual al anterior,
+			//o cuando se conecta un nodo por primera vez.
+			if((map.get(myID).get(dest) == null) || (map.get(myID).get(dest)[0]!=dest && map.get(myID).get(dest)[1]>=newcost) || (map.get(myID).get(dest)[0]==dest)){
 				
 				//sustituyo el nuevo valor del costo del link
 				HashMap<Integer,Integer[]> miVector=map.get(myID);
-						  
-				miVector.put(dest, new Integer[]{miVector.get(dest)[0],newcost});
+				
+				//Si es un nodo que se conecta por primera vez.
+				if (map.get(myID).get(dest) == null) {
+					
+					miVector.put(dest, new Integer[]{dest,newcost});
+					//También agrego una fila para el nuevo destino en mi map.
+					if (map.get(dest) == null) {
+						
+						HashMap<Integer, Integer[]> filaNueva = new HashMap<Integer, Integer[]>();
+						map.put(dest, filaNueva);
+						rellenarInfinitos(myID);
+		
+					};
+				
+				}else
+					miVector.put(dest, new Integer[]{miVector.get(dest)[0],newcost});
+				
+				
 				map.put(myID, miVector);
 				notificarVecinos();
 			}
 		}
 		else //remuevo el link de mi lista de links vecinos si el costo es infinito
 		{
-			//links.remove(dest);
 			
 			//Modificación Seba, si el cambio es por la caida de un link lo dejo en mi map a los vecinos pero con costo infinito
+			//links.remove(dest);
 			links.put(dest, sim.INFINITY);
 	
 			//Solo se notifican vecinos y se actualiza el map cuando se usaba ese link
 			if (map.get(myID).get(dest)[0]==dest){
 				
+				//Si estaba usando ese enlace para llegar al destino entonces no llego más.
+				map.get(myID).put(dest, new Integer[] {null,sim.INFINITY});
+
 				//elimino el camino a ese nodo en mi vector, ya que al usarlo dejo de llegar a el
 				HashMap<Integer,Integer[]> miVector=map.get(myID);
 				miVector.remove(dest);
 				map.put(myID, miVector);
+				
 				//simulo llegada de distance vecto de vecinos
 				simulacionRcvVecinos(dest);
+	
 				rellenarInfinitos(dest);
 				
 				notificarVecinos();
-				
-				
+
 			}
 		}
 	}

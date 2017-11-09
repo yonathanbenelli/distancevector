@@ -14,7 +14,7 @@ Output GUIs added by Ch. Schuba 2007.
 
 public class RouterSimulator {
 
-  public static final int NUM_NODES = 3;
+  public static final int NUM_NODES = 5;
   public static final int INFINITY = 999;
 
   public static final boolean LINKCHANGES = true;
@@ -92,14 +92,29 @@ should not have to, and you defeinitely should not have to modify
     	for(int j=0; j<NUM_NODES; j++)
     		connectcosts[i][j] = INFINITY;
     
-    connectcosts[0][1]=2;
-    connectcosts[1][0]=2;
+    connectcosts[0][1]=1;
+    connectcosts[1][0]=1;
     
     connectcosts[1][2]=1;
     connectcosts[2][1]=1;
     
-    connectcosts[0][2]=10;
-    connectcosts[2][0]=10;
+    connectcosts[2][3]=2;
+    connectcosts[3][2]=2;
+    
+    connectcosts[3][0]=7;
+    connectcosts[0][3]=7;
+    
+    connectcosts[4][0]=1;
+    connectcosts[0][4]=1;
+    
+    connectcosts[4][1]=1;
+    connectcosts[1][4]=1;
+    
+    connectcosts[4][2]=4;
+    connectcosts[2][4]=4;
+    
+    connectcosts[0][2]=3;
+    connectcosts[2][0]=3;
     
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
@@ -114,16 +129,24 @@ should not have to, and you defeinitely should not have to modify
 
     /* initialize future link changes */
     if (LINKCHANGES)   {
+
       evptr = new Event();
       evptr.evtime =  40;
       evptr.evtype =  LINK_CHANGE;
       evptr.eventity =  0;
       evptr.rtpktptr =  null;
-      evptr.dest = 1;
+      evptr.dest = 3;
       evptr.cost = INFINITY;
       insertevent(evptr);
       
-     
+      evptr = new Event();
+      evptr.evtime =  42;
+      evptr.evtype =  LINK_CHANGE;
+      evptr.eventity =  0;
+      evptr.rtpktptr =  null;
+      evptr.dest = 3;
+      evptr.cost = 1;
+      insertevent(evptr);
       
     }
   
@@ -268,10 +291,6 @@ should not have to, and you defeinitely should not have to modify
     }
     if (packet.sourceid == packet.destid)  {
       myGUI.println("WARNING: source and destination id's the same, ignoring packet!");
-      return;
-    }
-    if (connectcosts[packet.sourceid][packet.destid] == INFINITY)  {
-      myGUI.println("WARNING: source and destination not connected, ignoring packet!");
       return;
     }
 
