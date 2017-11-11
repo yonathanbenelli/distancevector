@@ -306,7 +306,7 @@ public class Copy_2_of_RouterNode {
 		if(llegaInfo)
 		{
 		myGUI.println("Current table for " + myID + "  at time " + sim.getClocktime());
-
+		myGUI.println(info);
 		String cabezal=F.format("O/D" , 15);
 		Boolean cabezalImprimir=true;
 
