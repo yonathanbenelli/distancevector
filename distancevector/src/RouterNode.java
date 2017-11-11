@@ -68,6 +68,8 @@ public class RouterNode {
 		//Notifico a todos mis vecinos que hubo cambios dado que antes no tenia datos
 		if(links!=null && links.size()>0)
 		notificarVecinos();
+		
+		llegaInfo=true;
 	
 	}
   

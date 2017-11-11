@@ -68,7 +68,7 @@ public class Copy_2_of_RouterNode {
 	   
 		//Notifico a todos mis vecinos que hubo cambios dado que antes no tenia datos
 		notificarVecinos();
-	
+	llegaInfo=true;
 	}
   
 	@SuppressWarnings("static-access")
