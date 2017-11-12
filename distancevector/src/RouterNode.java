@@ -13,7 +13,7 @@ public class RouterNode {
 	private Boolean llegaInfo=false;
 	private String info="";
  
-	Boolean aplicoRevInv=true;
+	Boolean aplicoRevInv=false;
   
 	//--------------------------------------------------
 	public RouterNode(int ID, RouterSimulator sim, HashMap<Integer,Integer> costs) {
@@ -97,7 +97,7 @@ public class RouterNode {
 						vecinoVector=new HashMap<Integer,Integer[]>();
 					if(vecinoVector.get(v2)==null){
 
-						if(v1==v2)
+						if(v1.compareTo(v2) == 0)
 							vecinoVector.put(v2, new Integer[]{null,0,0});
 						else
 							vecinoVector.put(v2, new Integer[]{null,this.sim.INFINITY,0});
