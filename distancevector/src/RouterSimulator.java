@@ -14,7 +14,7 @@ Output GUIs added by Ch. Schuba 2007.
 
 public class RouterSimulator {
 
-  public static final int NUM_NODES = 6;
+  public static final int NUM_NODES = 5;
   public static final int INFINITY = 999;
 
   public static final boolean LINKCHANGES = true;
@@ -92,20 +92,23 @@ should not have to, and you defeinitely should not have to modify
     for(int i=0; i<NUM_NODES; i++)
     	for(int j=0; j<NUM_NODES; j++)
     		connectcosts[i][j] = INFINITY;
-    connectcosts[0][1]=3;
-    connectcosts[0][2]=1;
-    connectcosts[1][0]=3;  
-    //connectcosts[1][2]=4;
-    connectcosts[2][0]=1;
-    //connectcosts[2][1]=4;
-    connectcosts[3][4]=2;  
-    connectcosts[4][3]=2;
-    connectcosts[4][5]=7;
-    connectcosts[5][4]=7;
-    connectcosts[5][3]=13;
-    connectcosts[3][5]=13;
-    connectcosts[2][3]=1;  
-    connectcosts[3][2]=1; 
+
+    connectcosts[0][1]=1;  
+    connectcosts[0][2]=3;
+    connectcosts[0][3]=7;
+//    connectcosts[0][4]=1;
+    connectcosts[1][0]=1;
+    connectcosts[1][2]=1;
+//    connectcosts[1][4]=1;
+    connectcosts[2][0]=3;  
+    connectcosts[2][1]=1;
+    connectcosts[2][3]=2;
+//    connectcosts[2][4]=4;
+    connectcosts[3][0]=7;
+    connectcosts[3][2]=2;
+//    connectcosts[4][0]=1;
+//    connectcosts[4][1]=1;
+//    connectcosts[4][2]=4;
 
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
@@ -121,14 +124,14 @@ should not have to, and you defeinitely should not have to modify
     /* initialize future link changes */
     if (LINKCHANGES)   {
 
-    	evptr = new Event();
-        evptr.evtime =  200;
-        evptr.evtype =  LINK_CHANGE;
-        evptr.eventity =  2;
-        evptr.rtpktptr =  null;
-        evptr.dest = 3;
-        evptr.cost = INFINITY; 
-        insertevent(evptr);
+//    	evptr = new Event();
+//        evptr.evtime =  200;
+//        evptr.evtype =  LINK_CHANGE;
+//        evptr.eventity =  2;
+//        evptr.rtpktptr =  null;
+//        evptr.dest = 3;
+//        evptr.cost = INFINITY; 
+//        insertevent(evptr);
 
    
     }
