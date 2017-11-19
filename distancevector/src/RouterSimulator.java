@@ -1,4 +1,5 @@
 import java.util.Random;
+
 import java.util.*;
 
 /* ******************************************************************
@@ -124,8 +125,23 @@ should not have to, and you defeinitely should not have to modify
     connectcosts[8][9]=3;
     connectcosts[9][7]=1;
     connectcosts[7][9]=1;
-
     
+//    connectcosts[0][1]=4;  
+//    connectcosts[0][2]=1;
+//    connectcosts[1][0]=4;
+//    connectcosts[1][2]=50;
+//    connectcosts[2][0]=1;
+//    connectcosts[2][1]=50;
+    
+//    connectcosts[2][3]=101;
+//    connectcosts[3][2]=101;
+//    connectcosts[3][4]=4;  
+//    connectcosts[4][3]=4;
+//    connectcosts[4][5]=50;
+//    connectcosts[5][4]=50;
+//    connectcosts[3][5]=1;
+//    connectcosts[5][3]=1;
+
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
       HashMap<Integer,Integer> neighbors = new HashMap<Integer,Integer>();
@@ -148,6 +164,15 @@ should not have to, and you defeinitely should not have to modify
         evptr.dest = 4;
         evptr.cost = INFINITY;
         insertevent(evptr);
+    	
+//        evptr = new Event();
+//        evptr.evtime =  40;
+//        evptr.evtype =  LINK_CHANGE;
+//        evptr.eventity =  0;
+//        evptr.rtpktptr =  null;
+//        evptr.dest = 1;
+//        evptr.cost = 60;
+//        insertevent(evptr);
                      
     }
   

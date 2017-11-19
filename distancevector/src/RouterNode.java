@@ -142,8 +142,8 @@ public class RouterNode {
 
 			Integer destinoNodo=(Integer) e.getKey();
 	  	  	
-			if (e.getValue() != sim.INFINITY) { //Si no se cayó el link con mi vecino
-			
+			if (e.getValue() != sim.INFINITY) { // NUEVO!! Chequeo para no enviarle msj a vecinos q se cayeron
+				//Todo lo de adentro del if ya estaba
 				RouterPacket pkt= new RouterPacket(myID, destinoNodo, dv);
 				
 				if(aplicoRevInv){
@@ -259,7 +259,7 @@ public class RouterNode {
 		info=info+"}";
 		rellenarInfinitos(vecino);	  
 	
-		//SI hay cambios aviso a vecinos
+		//Si hay cambios aviso a vecinos
 		if(hayCambios)
 			notificarVecinos();
 	
@@ -365,7 +365,12 @@ public class RouterNode {
 			//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
 			map.get(myID).put(dest,resultBellmanFord);
 	
-	    }
+	    }else if(map.get(myID).get(dest)!=null && map.get(myID).get(dest)[0]!=null && map.get(myID).get(dest)[0].compareTo(myID)==0) //sino llego a mi destino por mis vecinos y antes llegaba (pero puede que antes tampoco llegara)
+		{
+			//claramente dejo de llegar a ese destino
+			map.get(myID).remove(dest);
+	    	//si el destino no existe lo agrego a mi lista de destinos				
+		}
 		
 	}
 	
@@ -426,6 +431,20 @@ public class RouterNode {
 				HashMap<Integer,Integer[]> miVector=map.get(myID);
 				miVector.remove(dest);
 				map.put(myID, miVector);
+				
+				
+				Iterator<Entry<Integer, Integer[]>> it = map.get(dest).entrySet().iterator();
+			    while (it.hasNext()) {
+			    	Map.Entry<Integer, Integer[]> e = (Map.Entry<Integer, Integer[]>)it.next();
+			    	map.get(dest).put(e.getKey(),  new Integer[] {null,sim.INFINITY});
+			    }
+			    
+			    Iterator<Entry<Integer, Integer[]>> it2 = map.get(myID).entrySet().iterator();
+			    while (it2.hasNext()) {
+			    	Map.Entry<Integer, Integer[]> e = (Map.Entry<Integer, Integer[]>)it2.next();
+			    	if(e.getValue()[0]==dest)
+			    	map.get(myID).put(e.getKey(),  new Integer[] {null,sim.INFINITY});
+			    }
 				
 				//simulo llegada de distance vecto de vecinos
 				simulacionRcvVecinos(dest);
