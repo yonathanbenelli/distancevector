@@ -13,7 +13,7 @@ public class RouterNode {
 	private Boolean llegaInfo=false;
 	private String info="";
  
-	Boolean aplicoRevInv=false;
+	Boolean aplicoRevInv=true;
   
 	//--------------------------------------------------
 	public RouterNode(int ID, RouterSimulator sim, HashMap<Integer,Integer> costs) {
@@ -141,24 +141,29 @@ public class RouterNode {
 			Map.Entry<Integer, Integer> e = (Map.Entry<Integer, Integer>)it.next();
 
 			Integer destinoNodo=(Integer) e.getKey();
-	  	  
-			RouterPacket pkt= new RouterPacket(myID, destinoNodo, dv);
+	  	  	
+			if (e.getValue() != sim.INFINITY) { //Si no se cayó el link con mi vecino
 			
-			if(aplicoRevInv){
+				RouterPacket pkt= new RouterPacket(myID, destinoNodo, dv);
 				
-				Iterator<Entry<Integer, Integer>> it2 = dv.entrySet().iterator();
-				while (it2.hasNext()) {
-					  
-					Map.Entry<Integer, Integer> e2 = (Map.Entry<Integer, Integer>)it2.next();
-					Integer destinoAlc=(Integer) e2.getKey();
-					if(map.get(myID).get(destinoAlc)[0]!=null && map.get(myID).get(destinoAlc)[0].compareTo(destinoNodo)==0)
-						pkt.mincost.put(destinoAlc,sim.INFINITY);
-				}		
+				if(aplicoRevInv){
+					
+					Iterator<Entry<Integer, Integer>> it2 = dv.entrySet().iterator();
+					while (it2.hasNext()) {
+						  
+						Map.Entry<Integer, Integer> e2 = (Map.Entry<Integer, Integer>)it2.next();
+						Integer destinoAlc=(Integer) e2.getKey();
+						if(map.get(myID).get(destinoAlc)[0]!=null && map.get(myID).get(destinoAlc)[0].compareTo(destinoNodo)==0)
+							pkt.mincost.put(destinoAlc,sim.INFINITY);
+					}		
+					
+				}
+				sendUpdate(pkt);
 				
 			}
-			sendUpdate(pkt);
-					
+		
 		}
+	
 	}
     
 	@SuppressWarnings("static-access")
@@ -397,6 +402,10 @@ public class RouterNode {
 				
 				
 				map.put(myID, miVector);
+				//Cambio por el error en la defensa
+				simulacionRcvVecinos(dest);
+				rellenarInfinitos(dest);
+				//Fin del cambio
 				notificarVecinos();
 			}
 		}
