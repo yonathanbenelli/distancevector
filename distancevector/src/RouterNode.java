@@ -237,7 +237,7 @@ public class RouterNode {
 				Integer[] resultBellmanFord=bellmanFord(destinoAlcanzablePorVecino);
 				if(resultBellmanFord!=null) //si resultBellmanFord es null entonces no se llega al destino ni por mi ni por mis vecinos
 				{
-					if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || ((map.get(myID).get(destinoAlcanzablePorVecino)[0]!=null && map.get(myID).get(destinoAlcanzablePorVecino)[0].compareTo(resultBellmanFord[0])!=0) || (map.get(myID).get(destinoAlcanzablePorVecino)[0]!=null && map.get(myID).get(destinoAlcanzablePorVecino)[1].compareTo(resultBellmanFord[1])!=0)))
+					if((map.get(myID).get(destinoAlcanzablePorVecino)==null) || ((map.get(myID).get(destinoAlcanzablePorVecino)[0]==null) && (resultBellmanFord[0]!=null)) || ((map.get(myID).get(destinoAlcanzablePorVecino)[0]!=null && map.get(myID).get(destinoAlcanzablePorVecino)[0].compareTo(resultBellmanFord[0])!=0) || (map.get(myID).get(destinoAlcanzablePorVecino)[0]!=null && map.get(myID).get(destinoAlcanzablePorVecino)[1].compareTo(resultBellmanFord[1])!=0)))
 					{
 					//Si se cumple lo anterior pongo dicho costo al vecino mas el costo del vecino al destino alcanzable como mi nuevo costo al destino alcanzable
 					map.get(myID).put(destinoAlcanzablePorVecino,resultBellmanFord);
