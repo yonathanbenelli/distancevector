@@ -15,7 +15,7 @@ Output GUIs added by Ch. Schuba 2007.
 
 public class RouterSimulator {
 
-  public static final int NUM_NODES = 6;
+  public static final int NUM_NODES = 10;
   public static final int INFINITY = 999;
 
   public static final boolean LINKCHANGES = true;
@@ -94,58 +94,58 @@ should not have to, and you defeinitely should not have to modify
     	for(int j=0; j<NUM_NODES; j++)
     		connectcosts[i][j] = INFINITY;
    
-//    connectcosts[0][1]=1;  
-//    connectcosts[0][2]=3;
-//    connectcosts[0][3]=7;
-//    connectcosts[0][4]=1;
-//    connectcosts[1][0]=1;
-//    connectcosts[1][2]=1;
-//    connectcosts[1][3]=INFINITY;
-//    connectcosts[1][4]=1;
-//    connectcosts[2][0]=3;  
-//    connectcosts[2][1]=1;
-//    connectcosts[2][3]=2;
-//    connectcosts[2][4]=4;
-//    connectcosts[3][0]=7;
-//    connectcosts[3][1]=INFINITY;
-//    connectcosts[3][2]=2;
-//    connectcosts[3][4]=INFINITY;
-//    connectcosts[4][0]=1;
-//    connectcosts[4][1]=1;
-//    connectcosts[4][2]=4;
-//    connectcosts[4][3]=INFINITY;
+    connectcosts[0][1]=1;  
+    connectcosts[0][2]=3;
+    connectcosts[0][3]=7;
+    connectcosts[0][4]=1;
+    connectcosts[1][0]=1;
+    connectcosts[1][2]=1;
+    connectcosts[1][3]=INFINITY;
+    connectcosts[1][4]=1;
+    connectcosts[2][0]=3;  
+    connectcosts[2][1]=1;
+    connectcosts[2][3]=2;
+    connectcosts[2][4]=4;
+    connectcosts[3][0]=7;
+    connectcosts[3][1]=INFINITY;
+    connectcosts[3][2]=2;
+    connectcosts[3][4]=INFINITY;
+    connectcosts[4][0]=1;
+    connectcosts[4][1]=1;
+    connectcosts[4][2]=4;
+    connectcosts[4][3]=INFINITY;
+    
+    connectcosts[5][4]=1;
+    connectcosts[4][5]=1;
+    connectcosts[5][6]=2;
+    connectcosts[6][5]=2;
+    connectcosts[5][7]=4;
+    connectcosts[7][5]=4;
+    connectcosts[6][7]=1;
+    connectcosts[7][6]=1;
+    connectcosts[8][6]=1;
+    connectcosts[6][8]=1;
+    connectcosts[9][8]=3;
+    connectcosts[8][9]=3;
+    connectcosts[9][7]=1;
+    connectcosts[7][9]=1;
+    
+//    connectcosts[0][1]=4;  
+//    connectcosts[1][0]=4;
+//    connectcosts[0][2]=1;
+//    connectcosts[2][0]=1;
+//    connectcosts[2][1]=50;
+//    connectcosts[1][2]=50;
 //    
-//    connectcosts[5][4]=1;
-//    connectcosts[4][5]=1;
-//    connectcosts[5][6]=2;
-//    connectcosts[6][5]=2;
-//    connectcosts[5][7]=4;
-//    connectcosts[7][5]=4;
-//    connectcosts[6][7]=1;
-//    connectcosts[7][6]=1;
-//    connectcosts[8][6]=1;
-//    connectcosts[6][8]=1;
-//    connectcosts[9][8]=3;
-//    connectcosts[8][9]=3;
-//    connectcosts[9][7]=1;
-//    connectcosts[7][9]=1;
-    
-    connectcosts[0][1]=4;  
-    connectcosts[1][0]=4;
-    connectcosts[0][2]=1;
-    connectcosts[2][0]=1;
-    connectcosts[2][1]=50;
-    connectcosts[1][2]=50;
-    
-    connectcosts[3][4]=4;  
-    connectcosts[4][3]=4;
-    connectcosts[3][5]=1;
-    connectcosts[5][3]=1;
-    connectcosts[4][5]=50;
-    connectcosts[5][4]=50;
-    
-    connectcosts[2][3]=101;
-    connectcosts[3][2]=101;
+//    connectcosts[3][4]=4;  
+//    connectcosts[4][3]=4;
+//    connectcosts[3][5]=1;
+//    connectcosts[5][3]=1;
+//    connectcosts[4][5]=50;
+//    connectcosts[5][4]=50;
+//    
+//    connectcosts[2][3]=101;
+//    connectcosts[3][2]=101;
 
     nodes = new RouterNode[NUM_NODES];
     for(int i=0; i<NUM_NODES; i++){
@@ -164,9 +164,9 @@ should not have to, and you defeinitely should not have to modify
         evptr = new Event();
         evptr.evtime =  400.0;
         evptr.evtype =  LINK_CHANGE;
-        evptr.eventity =  2;
+        evptr.eventity =  4;
         evptr.rtpktptr =  null;
-        evptr.dest = 3;
+        evptr.dest = 5;
         evptr.cost = INFINITY;
         insertevent(evptr);
                      
